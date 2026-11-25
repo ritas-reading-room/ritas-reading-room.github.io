@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3b1d3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reading Room">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<title>Rita's Reading Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, personal, a little indulgent — a reading nook made for one person.
+   IDEA: an independent bookshop's front table and the reader's own shelf.
+   PICTURE: a shelf of book spines drawn from Rita's own library, across the top.
+   COLOUR and TYPE: deep plum ground, rose support, marigold accent; Fraunces display, Karla text.
+   LAYOUT: plum band with greeting + shelf, then a white working card that overlaps it; tabs route by hash. */
+:root{color-scheme:light dark;
+--bg:light-dark(#fbf7f5,#1a1219);--card:light-dark(#ffffff,#251a24);--ink:light-dark(#2a1a28,#f3e9ef);--soft:light-dark(#6e5a6b,#bfaebb);
+--line:light-dark(#eadfe6,#3a2b38);--plum:#3b1d3a;--plum2:#552a52;--rose:light-dark(#c9667e,#e9a2b3);--roseBg:light-dark(#f9e6eb,#3a2231);
+--gold:#f2b33d;--goldInk:#3b2500;--ok:light-dark(#2f7a55,#7fd1a6);--no:light-dark(#a8443d,#f0958c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Karla,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:650;line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,50px)}h2{font-size:clamp(26px,3.4vw,34px)}h3{font-size:19px;line-height:1.2}
+a{color:var(--rose)}
+button,select,input,textarea{font:inherit;font-size:16px;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,16px)}
+/* top */
+.top{background:var(--plum);color:#fbeef3}
+.nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:10px}
+.brand{font-family:Fraunces,serif;font-size:21px;margin-right:auto;color:#fff;text-decoration:none;display:flex;gap:10px;align-items:center}
+.brand i{width:12px;height:22px;background:var(--gold);border-radius:2px;display:inline-block;box-shadow:6px 3px 0 -1px #e9a2b3}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.tabs a{flex:none}
+@media(max-width:760px){.brand{flex-basis:100%}.tabs{margin:0 calc(-1*max(4vw,16px));padding:0 max(4vw,16px)}}
+.tab{min-height:44px;padding:0 15px;border-radius:22px;border:0;background:transparent;color:#f1dce6;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.tab:hover{background:rgba(255,255,255,.08)}.tab[aria-current=page]{background:#fbeef3;color:var(--plum);font-weight:700}
+.hero{padding:22px 0 96px}
+.hero p{color:#e6cfda;max-width:60ch;margin:10px 0 0;font-size:17px}
+.shelf{margin-top:26px;height:150px;position:relative}.shelf svg{position:absolute;inset:0;width:100%;height:100%}
+/* layout */
+main{position:relative}
+.view{display:none}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,32px);box-shadow:0 18px 40px -24px rgba(40,10,40,.35)}
+.lift{margin-top:-76px}
+.band{padding:clamp(28px,4vw,56px) 0}
+.sub{color:var(--soft);margin:6px 0 0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+@media(max-width:900px){.grid3{grid-template-columns:minmax(0,1fr)}}
+.lbl{font-weight:700;margin:0 0 10px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}.chip input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.chip span{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:20px;background:var(--bg);transition:.15s}
+.chip input:checked+span{background:var(--plum);color:#fff;border-color:var(--plum)}
+:root[data-theme=dark] .chip input:checked+span{background:var(--rose);color:#2a1a28}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .chip input:checked+span{background:var(--rose);color:#2a1a28}}
+.chip input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{min-height:44px;padding:0 20px;border-radius:24px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
+.btn.pri{background:var(--gold);border-color:var(--gold);color:var(--goldInk)}
+.btn.dk{background:var(--plum);border-color:var(--plum);color:#fff}
+.btn.sm{min-height:36px;padding:0 13px;font-size:14px;font-weight:500}
+.btn:disabled{opacity:.55;cursor:wait}
+.field{display:grid;gap:6px}
+.inp{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);width:100%}
+textarea.inp{min-height:80px;resize:vertical}
+.sw{display:flex;align-items:center;gap:10px;cursor:pointer;min-height:44px}
+.sw input{width:20px;height:20px;accent-color:var(--plum)}
+.head{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin:34px 0 16px}
+.note{font-size:14px;color:var(--soft)}
+/* book cards */
+.books{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.bk{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.cov{height:128px;padding:16px 18px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;position:relative}
+.cov::before{content:"";position:absolute;left:12px;top:0;bottom:0;width:4px;background:rgba(255,255,255,.25)}
+.cov b{font-family:Fraunces,serif;font-size:20px;line-height:1.1;font-weight:650;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.cov small{opacity:.9;font-size:14px;margin-top:4px}
+.flag{position:absolute;top:12px;right:12px;background:var(--gold);color:var(--goldInk);font-size:13px;font-weight:700;padding:3px 10px;border-radius:12px}
+.bd{padding:14px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.bd p{margin:0;font-size:15px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font-size:13px;background:var(--roseBg);color:var(--ink);padding:2px 9px;border-radius:10px}
+.why{font-size:14px;color:var(--soft)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.heads{font-size:14px;border-left:3px solid var(--rose);padding-left:10px;color:var(--soft)}
+/* library */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:20px 0}
+.stat{background:var(--roseBg);border-radius:14px;padding:14px 16px}.stat b{display:block;font-family:Fraunces,serif;font-size:30px;line-height:1.1}.stat span{font-size:14px;color:var(--soft)}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lib{display:grid;gap:12px}
+.li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.li .sp{align-self:stretch;border-radius:3px}
+.li h3{font-size:18px}.li .meta{font-size:14px;color:var(--soft)}
+.score{display:flex;gap:3px;margin-top:6px}.score i{width:14px;height:8px;border-radius:2px;background:var(--line)}.score i.f{background:var(--gold)}
+.pill{font-size:13px;padding:2px 10px;border-radius:10px;font-weight:700;white-space:nowrap}
+.pill.y{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}.pill.n{background:color-mix(in srgb,var(--no) 16%,transparent);color:var(--no)}.pill.t{background:var(--roseBg)}
+.li .ra{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:600px){.li{grid-template-columns:8px minmax(0,1fr)}.li .ra{grid-column:2;justify-content:flex-start}}
+.empty{text-align:center;padding:36px 16px;color:var(--soft);border:2px dashed var(--line);border-radius:16px}
+.seg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.seg button{min-height:44px;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;font-weight:700}
+.seg button.on{background:var(--gold);border-color:var(--gold);color:var(--goldInk)}
+.yn{display:flex;gap:8px}.yn button{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-weight:700}
+.yn button.on{background:var(--plum);color:#fff;border-color:var(--plum)}
+/* recs */
+.modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.mode{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
+.mode[aria-pressed=true]{background:var(--roseBg);border-color:var(--rose);font-weight:700}
+.authors{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.au{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--card)}
+.au b{font-family:Fraunces,serif;font-size:18px}.au p{margin:6px 0 10px;font-size:14px;color:var(--soft)}
+/* find */
+.links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px}
+@media(max-width:900px){.links{grid-template-columns:minmax(0,1fr)}}
+.lg h3{margin-bottom:4px}.lg>p{margin:0 0 12px;font-size:14px;color:var(--soft)}
+.lk{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);margin-bottom:8px;background:var(--bg)}
+.lk:hover{border-color:var(--rose)}.lk small{display:block;color:var(--soft);font-size:13px}.lk em{font-style:normal;color:var(--rose);font-weight:700;white-space:nowrap}
+.status{padding:12px 14px;border-radius:12px;background:var(--roseBg);margin-top:14px;font-size:15px}
+.status:empty{display:none}
+/* dialog */
+dialog{border:0;border-radius:18px;padding:0;width:min(560px,94vw);background:var(--card);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(30,10,30,.55)}
+.dlg{padding:24px;display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:520px){.two{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--plum);color:#fff;padding:12px 20px;border-radius:24px;transition:.25s;pointer-events:none;z-index:20;max-width:90vw;width:max-content;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{padding:36px 0 48px;color:var(--soft);font-size:14px;border-top:1px solid var(--line);margin-top:40px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:r .8s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}.toast{transition:none}}
+
+
+/* phone */
+html{-webkit-text-size-adjust:100%}a,button,label{-webkit-tap-highlight-color:transparent}
+.bnav{display:none}.sh{display:none}.pickbar{margin-top:14px;justify-content:flex-end}.cnt:empty{display:none}.cnt{background:var(--goldInk);color:var(--gold);border-radius:10px;font-size:13px;padding:0 7px;margin-left:2px}
+@media(max-width:760px){
+ .nav .tabs{display:none}.nav{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:4px}.brand{font-size:19px}
+ .bnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--card);border-top:1px solid var(--line);padding:4px max(4px,env(safe-area-inset-left)) calc(4px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));box-shadow:0 -8px 24px -18px rgba(40,10,40,.5)}
+ .bnav .tab{flex-direction:column;justify-content:center;gap:2px;min-height:56px;padding:0;border-radius:14px;color:var(--soft);font-size:12px;font-weight:700}
+ .bnav .tab[aria-current=page]{background:var(--roseBg);color:var(--ink)}
+ body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+ .hero{padding:8px 0 74px}.hero p{font-size:15px;margin-top:6px}h1{font-size:30px}h2{font-size:25px}
+ .shelf{height:84px;margin-top:14px}
+ .lift{margin-top:-62px}.card{border-radius:16px;padding:18px 16px}
+ .wrap{padding:0 14px}
+ .chips{gap:6px}.chip span{min-height:40px;padding:0 12px;font-size:15px}
+ .grid3{gap:18px}
+ #picker .row{gap:8px}
+ .lg{display:none}.sh{display:inline}
+ #clearPick{min-height:40px;padding:0 12px;font-weight:500}
+ .pickbar{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));z-index:5;margin:12px -16px -18px;padding:10px 16px;flex-wrap:nowrap;background:var(--card);border-top:1px solid var(--line);border-radius:0 0 16px 16px}
+ .pickbar .btn{flex:1;justify-content:center;padding:0 10px;white-space:nowrap}
+ .btn.sm{min-height:44px;padding:0 14px}
+ .acts .btn{flex:1 1 auto;justify-content:center}
+ .books{grid-template-columns:minmax(0,1fr);gap:14px}
+ .cov{height:104px}
+ .head{margin:26px 0 12px}
+ .lib-tools{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}.lib-tools #libQ{grid-column:1/-1}
+ .li{padding:14px;gap:12px}.li .ra .btn{flex:1 1 auto;justify-content:center}
+ .stat{padding:12px}.stat b{font-size:24px}
+ .modes{display:grid;grid-template-columns:1fr;gap:6px}.mode{text-align:start;padding:0 14px}
+ #recForm .btn,#findForm .btn{width:100%;justify-content:center}
+ .lk{min-height:56px}
+ dialog{width:100vw;max-width:100vw;max-height:92vh;margin:auto 0 0;border-radius:20px 20px 0 0}
+ dialog[open]{animation:up .25s ease-out}
+ .dlg{padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto}
+ .seg{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+ .yn{flex-direction:column}
+ .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+ footer{margin-top:24px;padding:24px 0}
+}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@media(hover:hover){.btn:hover{border-color:var(--rose)}}
+@media(prefers-reduced-motion:reduce){dialog[open]{animation:none}}
+
+.install{margin-top:18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:14px 16px}.install p{margin:4px 0 0;font-size:15px;color:var(--soft)}
+.backup{display:none}.solo .backup{display:flex}.solo [data-rev]{display:none}
+.morebox{grid-column:1/-1;display:flex;justify-content:center;padding:8px 0}.morebox .btn{width:min(100%,420px);justify-content:center}
+.taste{margin-top:22px;display:grid;gap:16px;background:var(--roseBg);border-radius:18px;padding:clamp(18px,3vw,28px)}
+.tchip{min-height:44px;padding:6px 14px;border-radius:22px;border:1px solid transparent;background:var(--card);cursor:pointer;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;font-weight:700;line-height:1.2;text-align:start}
+.tchip small{font-weight:400;font-size:13px;color:var(--soft)}.tchip:hover{border-color:var(--rose)}
+.chip.fave span::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);margin-left:8px}
+#shelf g[data-edit]:hover rect:first-child{filter:brightness(1.15)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <nav class="nav" aria-label="Sections">
+      <a class="brand" href="#home"><i></i>Rita's Reading Room</a>
+      <div class="tabs">
+      <a class="tab" href="#home" data-v="home">Tonight</a>
+      <a class="tab" href="#library" data-v="library">My Library</a>
+      <a class="tab" href="#for-you" data-v="for-you">For You</a>
+      <a class="tab" href="#find" data-v="find">Find this Book</a>
+      <a class="tab" href="#trending" data-v="trending">BookTok Now</a>
+      </div>
+    </nav>
+    <div class="hero">
+      <h1 id="heroT">What are we reading next, Rita?</h1>
+      <p id="heroP">Tell me your mood, the genre you're craving and the vibe you want, and I'll pull the books BookTok can't stop talking about that fit you best.</p>
+      <div class="shelf" aria-hidden="true"><svg id="shelf"></svg></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- HOME -->
+  <section class="view" id="v-home">
+    <form class="card lift" id="picker">
+      <div class="grid3">
+        <fieldset style="border:0;padding:0;margin:0"><legend class="lbl">How are you feeling?</legend><div class="chips" id="c-mood"></div></fieldset>
+        <fieldset style="border:0;padding:0;margin:0"><legend class="lbl">What genre?</legend><div class="chips" id="c-genre"></div></fieldset>
+        <fieldset style="border:0;padding:0;margin:0"><legend class="lbl">What vibe are you hoping for?</legend><div class="chips" id="c-vibe"></div></fieldset>
+      </div>
+      <div class="row" style="margin-top:22px;justify-content:space-between">
+        <label class="sw"><input type="checkbox" id="onlyHot"> Only new &amp; trending right now</label>
+        <button type="button" class="btn" id="clearPick">Clear all</button>
+      </div>
+      <div class="row pickbar">
+        <button type="button" class="btn dk" id="askFresh"><span class="lg">Ask Jake for fresh picks</span><span class="sh">Jake's picks</span></button>
+        <button type="submit" class="btn pri"><span class="lg">Find my next read</span><span class="sh">Find my read</span><b class="cnt" id="selCnt"></b></button>
+      </div>
+    </form>
+    <div class="install" id="install" hidden>
+      <div><b>Put the Reading Room on your home screen</b><p id="installHow"></p></div>
+      <div class="row"><button type="button" class="btn pri sm" id="installBtn" hidden>Install app</button><button type="button" class="btn sm" id="installNo">Not now</button></div>
+    </div>
+    <div id="tasteBox"></div>
+    <div class="head"><div><h2 id="resT">Trending picks for you</h2><p class="sub" id="resS">Choose a few boxes above to narrow it down.</p></div></div>
+    <div class="books" id="homeRes"></div>
+    <div id="freshWrap" hidden><div class="head"><div><h2>Jake's picks</h2><p class="sub">Picked for your exact mix, skipping books already on your shelf.</p></div></div><div class="books" id="freshRes"></div></div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="view" id="v-library">
+    <div class="card lift">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>My Library</h2><p class="sub">Every book you've read, how you'd rate it, and whether you'd go back for more.</p></div>
+        <button class="btn pri" id="addBtn">+ Add a book</button>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="row lib-tools">
+        <input class="inp" id="libQ" placeholder="Search your shelf by title or author" style="flex:1 1 240px" aria-label="Search library">
+        <select class="inp" id="libF" style="flex:0 1 190px" aria-label="Filter"><option value="all">All books</option><option value="read">Read</option><option value="tbr">Want to read</option><option value="again">Would read again</option></select>
+        <select class="inp" id="libS" style="flex:0 1 190px" aria-label="Sort"><option value="new">Recently added</option><option value="rating">Highest rated</option><option value="title">Title A–Z</option><option value="author">Author A–Z</option></select>
+      </div>
+      <p class="note" id="syncNote" style="margin:10px 0 0"></p>
+      <div class="row backup" style="margin-top:10px"><button type="button" class="btn sm" id="bkOut">Back up my library</button><label class="btn sm" style="cursor:pointer">Restore from backup<input type="file" id="bkIn" accept="application/json,.json" class="sr"></label></div>
+    </div>
+    <div class="lib" id="libList" style="margin-top:20px"></div>
+  </section>
+
+  <!-- FOR YOU -->
+  <section class="view" id="v-for-you">
+    <div class="card lift">
+      <h2>Recommendations</h2>
+      <p class="sub">Three ways in: from your shelf, from one book you loved, or from an author whose writing you adore.</p>
+      <div class="modes" role="group" aria-label="Recommendation type" style="margin-top:18px">
+        <button class="mode" data-m="shelf" aria-pressed="true">Based on my library</button>
+        <button class="mode" data-m="like" aria-pressed="false">Books like…</button>
+        <button class="mode" data-m="author" aria-pressed="false">Authors like…</button>
+      </div>
+      <form id="recForm" class="row">
+        <input class="inp" id="recIn" style="flex:1 1 300px" list="known" autocomplete="off">
+        <button class="btn pri" type="submit" id="recGo">Recommend</button>
+      </form>
+      <p class="note" id="recHint" style="margin:10px 0 0"></p>
+      <div class="status" id="recStatus" role="status"></div>
+    </div>
+    <div id="recOut" style="margin-top:24px"></div>
+  </section>
+
+  <!-- FIND -->
+  <section class="view" id="v-find">
+    <div class="card lift">
+      <h2>Find this Book</h2>
+      <p class="sub">Borrow it free from a library, download it free if it's in the public domain, or buy it in Canada.</p>
+      <form id="findForm" class="row" style="margin-top:18px">
+        <input class="inp" id="findT" placeholder="Book title" style="flex:2 1 240px" list="known" autocomplete="off" aria-label="Title">
+        <input class="inp" id="findA" placeholder="Author (optional)" style="flex:1 1 180px" aria-label="Author">
+        <button class="btn pri" type="submit">Show me where</button>
+      </form>
+      <div id="findOut"></div>
+    </div>
+  </section>
+
+  <!-- TRENDING -->
+  <section class="view" id="v-trending">
+    <div class="card lift">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>What BookTok is reading now</h2><p class="sub">The 2026 hits and this fall's buzziest releases, with why people love them and anything worth knowing first.</p></div>
+        <select class="inp" id="trF" style="flex:0 1 220px" aria-label="Filter by genre"><option value="">All genres</option></select>
+      </div>
+      <p class="note" style="margin:12px 0 0">Our summaries of the buzz, not quotes from reviewers. Tap “Read reviews” for real reader reviews, or “Full review” for a longer take from Claude. List compiled November 2026.</p>
+    </div>
+    <div class="books" id="trList" style="margin-top:22px"></div>
+  </section>
+
+  <datalist id="known"></datalist>
+  <footer>Made with love for Rita. Library links open a search on each site; availability is shown there. Free downloads are only offered from legal sources: public-domain libraries and library lending.</footer>
+</main>
+
+<dialog id="dlg">
+  <form class="dlg" id="bookForm" method="dialog">
+    <h2 id="dlgT" style="font-size:26px">Add a book</h2>
+    <div class="two">
+      <label class="field">Title<input class="inp" id="fT" required list="known" autocomplete="off"></label>
+      <label class="field">Author<input class="inp" id="fA" required></label>
+    </div>
+    <div class="two">
+      <label class="field">Genre<select class="inp" id="fG"></select></label>
+      <label class="field">Shelf<select class="inp" id="fS"><option value="read">I've read it</option><option value="tbr">Want to read</option></select></label>
+    </div>
+    <div id="readBits" style="display:grid;gap:14px">
+      <div class="field"><span>Your rating: <b id="fRv">–</b>/10</span><div class="seg" id="fR"></div></div>
+      <div class="field"><span>Would you read it again?</span><div class="yn" id="fY"><button type="button" data-v="yes">Yes, absolutely</button><button type="button" data-v="no">Once was enough</button></div></div>
+    </div>
+    <label class="field">Notes (optional)<textarea class="inp" id="fN" placeholder="Favourite character, the twist, who to lend it to…"></textarea></label>
+    <div class="row" style="justify-content:space-between">
+      <button type="button" class="btn" id="delBtn" hidden style="color:var(--no)">Remove</button>
+      <div class="row" style="margin-left:auto"><button type="button" class="btn" id="cancelBtn">Cancel</button><button type="submit" class="btn pri">Save</button></div>
+    </div>
+  </form>
+</dialog>
+<nav class="bnav" aria-label="Sections"><a class="tab" href="#home" data-v="home"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span>Tonight</span></a><a class="tab" href="#library" data-v="library"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><path d="M16.5 5.2l3.8-1 3.2 14.4-3.8 1z" transform="translate(-2 0)"/></svg><span>Library</span></a><a class="tab" href="#for-you" data-v="for-you"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>For You</span></a><a class="tab" href="#find" data-v="find"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><span>Find</span></a><a class="tab" href="#trending" data-v="trending"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/></svg><span>BookTok</span></a></nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const SOLO=!(window.claude&&window.claude.use);if(SOLO)document.documentElement.classList.add('solo');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const enc=encodeURIComponent;
+
+const MOODS={cozy:'Cozy',light:'Want to laugh',romantic:'Romantic',cry:'Need a good cry',edge:'On the edge of my seat',adventurous:'Adventurous',escape:'Escape reality',curious:'Thoughtful',spooky:'Spooky'};
+const GENRES={romantasy:'Romantasy',fantasy:'Fantasy',romance:'Romance',thriller:'Thriller',mystery:'Mystery',literary:'Literary fiction',historical:'Historical',horror:'Horror',scifi:'Sci-fi & dystopian',ya:'Young adult',memoir:'Memoir'};
+const VIBES={slowburn:'Slow burn',fast:'Fast-paced',dark:'Dark & twisty',heart:'Heartwarming',spicy:'Spicy',banter:'Witty banter',atmos:'Atmospheric',twist:'Big twist',epic:'Epic & sweeping',emo:'Emotional gut-punch'};
+
+// t,a,g,m,v,hot(1=2026 BookTok hit,2=new fall 2026),blurb,buzz,heads
+const B=[
+['Fourth Wing','Rebecca Yarros','romantasy','adventurous romantic escape','fast spicy epic banter',1,'Violet is forced into a brutal war college for dragon riders, where the dragons choose you or kill you.','Named Europe\'s first-ever #BookTok Bestseller of the Year in October 2026. The dragons, the rivals-to-lovers tension and the cliffhangers keep everyone bingeing the series.','Open-door romance. Book 1 of the Empyrean series.'],
+['Onyx Storm','Rebecca Yarros','romantasy','adventurous escape','fast epic dark',0,'The third Empyrean book widens the war beyond the walls of Basgiath.','The fandom reads it in a weekend and then theorizes for months.','Read Fourth Wing and Iron Flame first.'],
+['A Court of Thorns and Roses','Sarah J. Maas','romantasy','romantic escape adventurous','slowburn atmos spicy',1,'A huntress is dragged into a faerie realm in this Beauty-and-the-Beast-inspired opener.','The gateway book to romantasy for millions of readers.','Most fans say the series really takes off in book 2.'],
+['A Court of Mist and Fury','Sarah J. Maas','romantasy','romantic escape','slowburn spicy epic emo',1,'Feyre rebuilds herself after trauma and finds a new court and a new love.','Ranked the most viral BookTok title in late-2025 rankings. The fandom calls it the best book of the series.','Book 2; read ACOTAR first. Spicy.'],
+['Binding 13','Chloe Walsh','romance ya','romantic cry','slowburn emo',1,'A bullied new girl and an Irish rugby star circle each other through a very slow burn.','Chloe Walsh was Europe\'s most successful BookTok author of 2026, with two books in the top five.','Long, and it deals with family abuse. The Boys of Tommen series.'],
+['Saving 6','Chloe Walsh','romance','romantic cry','slowburn emo',1,'Johnny and Shannon\'s story continues in the second Boys of Tommen book.','In Europe\'s 2026 BookTok top five: readers say it hurts in the best way.','Read Binding 13 first. Heavy themes.'],
+['Heated Rivalry','Rachel Reid','romance','romantic light','spicy banter slowburn',1,'Two rival hockey superstars carry on a secret affair over years.','A Canadian author\'s Game Changers series, and one of 2026\'s biggest romance reads after its TV adaptation.','Very spicy, M/M.'],
+['The Mistake','Elle Kennedy','romance','light romantic','banter spicy',1,'A hockey player tries to win over the one girl unimpressed by him.','In Europe\'s 2026 BookTok top five; college-hockey romance is having a huge moment.','Book 2 of the Off-Campus series, reads fine on its own. Spicy.'],
+['Mate','Ali Hazelwood','romance fantasy','romantic spooky light','spicy banter',2,'Ali Hazelwood\'s new paranormal romance, set in the werewolf-and-vampire world of Bride.','One of the fall 2026 releases BookTok\'s spooky-season romance readers were waiting for.','Spicy. Reading Bride first helps.'],
+['Bride','Ali Hazelwood','romance fantasy','romantic spooky light','spicy banter',1,'A vampire agrees to a political marriage with a werewolf alpha.','Hazelwood\'s jump from STEM romance to paranormal won over a whole new crowd.','Spicy.'],
+['King Sorrow','Joe Hill','horror','spooky edge','dark epic',2,'Joe Hill\'s big October 2026 horror novel.','The fall release horror BookTok has been screaming about.','Horror: expect real scares and violence.'],
+['Alchemy of Secrets','Stephanie Garber','fantasy ya','escape spooky','atmos twist',2,'A new novel from the author of Caraval and Once Upon a Broken Heart (October 2026).','Garber fans counted down to its October release date.',''],
+['The Lion and the Deathless Dark','Carissa Broadbent','romantasy','adventurous romantic','dark epic slowburn',2,'New fall 2026 romantasy from the author of The Serpent and the Wings of Night.','Broadbent grew her readership on social media, so anything new from her trends fast.',''],
+['The Knave and the Moon','Rachel Gillig','fantasy','spooky escape','atmos dark',2,'A new gothic-tinged fantasy from the author of One Dark Window (fall 2026).','Fans of her Shepherd King duology have been waiting for this one.',''],
+['The Serpent and the Wings of Night','Carissa Broadbent','romantasy','adventurous romantic','dark slowburn epic',1,'A human raised by a vampire king enters a deadly tournament.','An enemies-to-lovers vampire romantasy and one of the most viral fantasy titles of the past year.','Violent at times. Crowns of Nyaxia series.'],
+['Sunrise on the Reaping','Suzanne Collins','scifi ya','edge cry adventurous','dark fast emo',1,'A Hunger Games prequel set at Haymitch\'s Games.','Readers brace for heartbreak. It\'s still everywhere ahead of the film.','You know what the Hunger Games are.'],
+['The Seven Husbands of Evelyn Hugo','Taylor Jenkins Reid','historical literary','cry romantic curious','emo twist',1,'A reclusive Hollywood icon finally tells the truth about her life and loves.','The book people press into friends\' hands, and the ending wrecks everyone.',''],
+['Atmosphere','Taylor Jenkins Reid','historical romance','romantic cry curious','emo slowburn',0,'A love story inside the 1980s space shuttle program.','TJR fans call it her most romantic book.',''],
+['The Song of Achilles','Madeline Miller','fantasy historical','cry romantic','atmos emo slowburn',1,'The Trojan War retold as the love story of Achilles and Patroclus.','Gorgeous prose and the most famous BookTok crying videos.','You will cry.'],
+['The Women','Kristin Hannah','historical','cry curious','emo epic',1,'A young nurse serves in Vietnam and comes home to a country that won\'t see her.','The book-club pick everyone loved.','War trauma.'],
+['It Ends With Us','Colleen Hoover','romance','cry romantic','emo',1,'A florist falls for a neurosurgeon, and an old love resurfaces.','Colleen Hoover is one of TikTok\'s most-viewed authors. This is the one that started it.','Domestic abuse is central.'],
+['Verity','Colleen Hoover','thriller','edge','dark twist fast spicy',1,'A struggling writer finds a disturbing manuscript in a famous author\'s home.','Readers still argue about the ending.','Dark and explicit at times.'],
+['The Silent Patient','Alex Michaelides','thriller','edge','twist fast',1,'A painter shoots her husband and never speaks again.','A twist people make whole videos reacting to.',''],
+['The Housemaid','Freida McFadden','thriller','edge','twist fast dark',0,'A woman with a past takes a live-in job with a family that has secrets.','Binge-in-a-day pacing.',''],
+['The Secret History','Donna Tartt','literary mystery','curious edge','dark atmos',1,'Elite classics students drift into murder.','The founding text of dark academia.','Slow and literary.'],
+['A Good Girl\'s Guide to Murder','Holly Jackson','mystery ya','edge curious','twist fast',1,'A student reopens a closed murder case for her school project.','Fast, clever and told partly through interviews and notes.',''],
+['The Inheritance Games','Jennifer Lynn Barnes','mystery ya','escape curious','twist banter fast',0,'A teen inherits a billionaire\'s fortune and the puzzles that come with it.','Puzzle-box fun with a love triangle.',''],
+['Six of Crows','Leigh Bardugo','fantasy ya','adventurous escape','fast banter twist',1,'Six outcasts attempt an impossible heist.','Found family people stay attached to for years.',''],
+['Powerless','Lauren Roberts','romantasy ya','adventurous romantic','slowburn fast banter',1,'An Ordinary hides among the powerful Elites and competes in deadly trials.','An addictive enemies-to-lovers YA romantasy.',''],
+['Twisted Love','Ana Huang','romance','romantic','spicy dark',1,'A cold, overprotective man falls for his best friend\'s sister.','Morally grey hero and lots of tension.','18+, spicy.'],
+['The House in the Cerulean Sea','TJ Klune','fantasy','cozy light','heart',1,'A caseworker inspects an orphanage of magical children.','BookTok\'s favourite warm hug of a book.',''],
+['Legends & Lattes','Travis Baldree','fantasy','cozy light','heart',0,'An orc warrior retires to open a coffee shop.','The book that launched the cozy-fantasy wave.',''],
+['Normal People','Sally Rooney','literary romance','cry curious','slowburn emo',1,'Two Irish teens orbit each other from school to university.','Quiet, precise and devastating.',''],
+['A Little Life','Hanya Yanagihara','literary','cry','dark emo',1,'Four friends in New York, and one man\'s trauma, over decades.','The most famous "this destroyed me" book on the app.','Very heavy: abuse and self-harm.'],
+['Funny Story','Emily Henry','romance','light romantic cozy','banter heart',0,'Two exes\' exes fake-date for a summer.','Emily Henry is the queen of banter.',''],
+['Book Lovers','Emily Henry','romance','light romantic','banter heart',0,'A literary agent keeps running into a brooding editor in a small town.','Bookish people love the bookish romance.',''],
+['The Love Hypothesis','Ali Hazelwood','romance','light romantic','banter spicy',0,'A PhD student fake-dates a notoriously grumpy professor.','The STEM romance that made Hazelwood a name, now a film.','Open door.'],
+['Icebreaker','Hannah Grace','romance','romantic light','spicy banter',0,'A figure skater and a hockey captain share a rink.','A massive college-sports romance hit.','Spicy.'],
+['Quicksilver','Callie Hart','romantasy','romantic adventurous','spicy banter slowburn',0,'A thief is dragged into the faerie realm by a fae warrior.','Big ACOTAR-fan energy.','Spicy.'],
+['Better Than the Movies','Lynn Painter','romance ya','light cozy romantic','banter heart',1,'A rom-com superfan enlists her annoying neighbour to win her crush.','Painter had two film adaptations announced in 2026.',''],
+['Falling Like Leaves','Misty Wilson','romance ya','cozy romantic','heart',1,'A cozy small-town fall romance.','Perfect for this exact time of year.',''],
+['I Could Give You the Moon','Ann Liang','romance ya','romantic light','banter heart',1,'Ann Liang\'s 2026 YA romance.','One of 2026\'s most popular YA BookTok titles.',''],
+['Mexican Gothic','Silvia Moreno-Garcia','horror historical','spooky','atmos dark',0,'A socialite investigates her cousin\'s eerie new home in 1950s Mexico.','Gothic, gorgeous and creepy.','Body horror.'],
+['Ninth House','Leigh Bardugo','fantasy mystery','spooky edge','dark atmos',0,'A survivor monitors Yale\'s occult secret societies.','Dark academia meets ghosts.','Dark content.'],
+['Tender Is the Flesh','Agustina Bazterrica','horror','edge spooky','dark',1,'A dystopia where people are farmed for food.','The "I can\'t believe I read that" pick.','Extremely graphic.'],
+['Yellowface','R.F. Kuang','literary','curious edge','fast dark',0,'A writer steals her dead friend\'s manuscript and publishes it as her own.','Sharp satire of publishing and online pile-ons.',''],
+['Babel','R.F. Kuang','fantasy historical','curious adventurous','epic dark atmos',0,'Translation magic powers the British Empire at 1830s Oxford.','Ambitious, brainy dark academia.','Long.'],
+['Project Hail Mary','Andy Weir','scifi','adventurous light curious','fast heart',0,'An astronaut wakes alone in space with no memory and a world to save.','Pure fun, with a friendship people adore.',''],
+['The Midnight Library','Matt Haig','literary fantasy','curious cozy','heart',0,'Between life and death, a woman tries the lives she might have lived.','Comforting and thoughtful.','Opens with a suicide attempt.'],
+['Remarkably Bright Creatures','Shelby Van Pelt','literary','cozy cry','heart',0,'A widow befriends a grumpy, very clever octopus.','Everyone\'s favourite octopus narrator.',''],
+['Lessons in Chemistry','Bonnie Garmus','historical','light curious','banter heart',0,'A 1960s chemist ends up hosting a TV cooking show.','Funny, angry and uplifting.','Includes a sexual assault.'],
+['I\'m Glad My Mom Died','Jennette McCurdy','memoir','curious cry','emo',1,'The former child star\'s memoir of growing up under her mother\'s control.','Darkly funny and raw.','Eating disorders and abuse.'],
+["Iron Flame", "Rebecca Yarros", "romantasy", "adventurous escape", "fast epic spicy", 1, "Violet's second year at Basgiath brings new allies, betrayals and a war beyond the wards.", "Readers race through it to reach Onyx Storm.", "Book 2 of the Empyrean series."],
+["A Court of Wings and Ruin", "Sarah J. Maas", "romantasy", "adventurous romantic", "epic emo", 0, "Feyre plays spy in the Spring Court as war with Hybern arrives.", "", "Book 3 of ACOTAR."],
+["A Court of Silver Flames", "Sarah J. Maas", "romantasy", "romantic cry", "spicy slowburn emo", 1, "Nesta battles her demons, and Cassian, in the most healing-focused ACOTAR book.", "A fan favourite for character growth.", "The spiciest of the series."],
+["Throne of Glass", "Sarah J. Maas", "fantasy ya", "adventurous escape", "epic fast", 1, "An assassin competes to become the king's champion.", "Fans call the eight-book series a commitment worth making.", ""],
+["House of Earth and Blood", "Sarah J. Maas", "romantasy", "adventurous romantic", "epic fast spicy", 1, "A half-fae party girl hunts a murderer in a modern magical city.", "The slow start pays off with a huge finale.", "Book 1 of Crescent City."],
+["From Blood and Ash", "Jennifer L. Armentrout", "romantasy", "romantic escape", "spicy banter twist", 1, "A sheltered Maiden falls for the guard sworn to protect her.", "A bingeable series with a twist readers love.", "Spicy."],
+["The Cruel Prince", "Holly Black", "fantasy ya", "escape adventurous", "dark twist banter", 1, "A mortal girl schemes for power in a cruel faerie court.", "Jude and Cardan's enemies-to-lovers is legendary.", ""],
+["Caraval", "Stephanie Garber", "fantasy ya", "escape", "atmos twist", 0, "Two sisters enter a magical game where nothing is what it seems.", "", ""],
+["Once Upon a Broken Heart", "Stephanie Garber", "fantasy ya", "romantic escape", "atmos banter", 1, "A heartbroken girl makes a deal with the Prince of Hearts.", "Jacks is a BookTok obsession.", ""],
+["One Dark Window", "Rachel Gillig", "fantasy", "spooky romantic", "atmos dark slowburn", 1, "A girl hiding a monster in her mind joins a plot to collect magical cards.", "Gothic, foggy and romantic.", ""],
+["Divine Rivals", "Rebecca Ross", "romantasy ya", "romantic cry", "slowburn heart emo", 1, "Rival journalists trade anonymous letters during a war of gods.", "A letters romance that makes people cry.", ""],
+["The Bridge Kingdom", "Danielle L. Jensen", "romantasy", "romantic adventurous", "slowburn spicy", 0, "A princess trained as a spy marries the king she's meant to betray.", "", "Spicy."],
+["Kingdom of the Wicked", "Kerri Maniscalco", "romantasy", "romantic spooky", "dark spicy atmos", 0, "A witch seeking revenge for her twin summons a prince of Hell.", "", ""],
+["The Priory of the Orange Tree", "Samantha Shannon", "fantasy", "adventurous escape", "epic", 0, "Queens, mages and dragons face an ancient enemy.", "A standalone epic people adore.", "Over 800 pages."],
+["Mistborn: The Final Empire", "Brandon Sanderson", "fantasy", "adventurous", "epic twist fast", 0, "A street thief joins a crew plotting to overthrow an immortal emperor.", "", ""],
+["The Atlas Six", "Olivie Blake", "fantasy", "curious edge", "dark atmos", 1, "Six magicians compete for a place in a secret society.", "Dark academia where everyone is morally grey.", ""],
+["Vicious", "V.E. Schwab", "fantasy", "edge", "dark twist", 0, "Two college friends gain powers and become enemies.", "", ""],
+["The Invisible Life of Addie LaRue", "V.E. Schwab", "fantasy literary", "cry romantic curious", "atmos emo", 1, "A woman cursed to be forgotten meets the one person who remembers her.", "A dreamy, bittersweet favourite.", ""],
+["Bury Our Bones in the Midnight Soil", "V.E. Schwab", "fantasy horror", "spooky romantic", "dark atmos", 1, "Three women across centuries are bound by a vampiric hunger.", "Schwab's 2025 vampire novel got huge BookTok buzz.", "Violence."],
+["Lightlark", "Alex Aster", "romantasy ya", "adventurous romantic", "fast twist", 1, "Rulers of cursed realms compete in a deadly game on an island.", "One of the biggest series BookTok launched.", ""],
+["Shadow and Bone", "Leigh Bardugo", "fantasy ya", "adventurous escape", "epic", 0, "An orphan soldier discovers a power that could free her war-torn country.", "", ""],
+["Red Queen", "Victoria Aveyard", "fantasy ya", "adventurous", "fast twist", 0, "A girl with common red blood discovers a power only the elite should have.", "", ""],
+["The Hunger Games", "Suzanne Collins", "scifi ya", "edge adventurous", "fast dark", 1, "Katniss volunteers for a televised fight to the death.", "Back on everyone's radar with the new prequels.", ""],
+["The Ballad of Songbirds and Snakes", "Suzanne Collins", "scifi ya", "edge curious", "dark", 0, "Young Coriolanus Snow mentors a District 12 tribute.", "", ""],
+["The Poppy War", "R.F. Kuang", "fantasy historical", "adventurous", "dark epic", 0, "A war orphan aces the empire's exam and finds a terrifying power.", "", "Graphic war atrocities."],
+["Circe", "Madeline Miller", "fantasy historical", "curious cry", "atmos emo", 1, "The witch of Greek myth tells her own story.", "Lyrical and empowering.", ""],
+["Heartless Hunter", "Kristen Ciccarelli", "romantasy ya", "romantic edge", "twist banter", 1, "A secret witch and a witch hunter fake an engagement.", "A big BookTok romantasy.", ""],
+["The Ashes and the Star-Cursed King", "Carissa Broadbent", "romantasy", "romantic adventurous", "dark emo", 0, "Oraya faces the fallout of the Kejari in Crowns of Nyaxia book 2.", "", "Read The Serpent and the Wings of Night first."],
+["A Deadly Education", "Naomi Novik", "fantasy", "curious light", "banter dark", 0, "A grumpy dark sorceress tries to survive a school that eats its students.", "", ""],
+["Spellshop", "Sarah Beth Durst", "fantasy", "cozy light", "heart", 1, "A librarian flees with forbidden spellbooks and opens a jam-and-spell shop on an island.", "A cozy-fantasy favourite.", ""],
+["Emily Wilde's Encyclopaedia of Faeries", "Heather Fawcett", "fantasy", "cozy curious", "banter atmos", 1, "A prickly scholar studies the faeries of a remote northern village.", "Cozy academia with a charming rival.", ""],
+["The Very Secret Society of Irregular Witches", "Sangu Mandanna", "fantasy romance", "cozy light", "heart banter", 1, "A lonely witch is hired to teach three young witches in a mysterious house.", "Warm, funny and romantic.", ""],
+["Under the Whispering Door", "TJ Klune", "fantasy", "cozy cry", "heart emo", 0, "A dead lawyer gets one last chance at life in a tea shop between worlds.", "", ""],
+["Happy Place", "Emily Henry", "romance", "romantic cry", "emo banter", 1, "Exes pretend they're still together on a friends' trip to Maine.", "", ""],
+["People We Meet on Vacation", "Emily Henry", "romance", "light romantic", "banter slowburn", 1, "Two best friends take one last summer trip to fix what went wrong.", "", ""],
+["Beach Read", "Emily Henry", "romance", "romantic light", "banter", 0, "Rival writers swap genres for a summer.", "", ""],
+["Great Big Beautiful Life", "Emily Henry", "romance", "romantic curious", "slowburn", 1, "Two writers compete to tell a reclusive heiress's life story.", "Emily Henry's 2025 release.", ""],
+["Part of Your World", "Abby Jimenez", "romance", "romantic cozy", "heart banter", 1, "A doctor falls for a younger carpenter in a small town.", "", ""],
+["Just for the Summer", "Abby Jimenez", "romance", "romantic light", "banter heart", 1, "Two people whose exes always find true love next try dating each other.", "", ""],
+["Yours Truly", "Abby Jimenez", "romance", "romantic", "banter heart", 0, "An ER doctor falls for a new colleague through handwritten letters.", "", ""],
+["Things We Never Got Over", "Lucy Score", "romance", "romantic light", "spicy banter", 1, "A runaway bride gets stuck in a small town with a grumpy barber.", "", "Spicy."],
+["It Starts with Us", "Colleen Hoover", "romance", "romantic", "heart", 0, "Lily and Atlas finally get their second chance.", "", "Read It Ends With Us first."],
+["Ugly Love", "Colleen Hoover", "romance", "cry romantic", "spicy emo", 1, "Two people agree to a no-strings arrangement with two rules.", "", "Spicy."],
+["Reminders of Him", "Colleen Hoover", "romance", "cry", "emo", 1, "A woman released from prison fights to see her daughter.", "", ""],
+["November 9", "Colleen Hoover", "romance", "romantic cry", "twist emo", 0, "Two people meet on the same date every year.", "", ""],
+["Twisted Games", "Ana Huang", "romance", "romantic", "spicy slowburn", 0, "A princess falls for her stoic bodyguard.", "", "Spicy."],
+["King of Wrath", "Ana Huang", "romance", "romantic", "spicy", 1, "An arranged marriage between two powerful heirs.", "", "Spicy."],
+["The Deal", "Elle Kennedy", "romance", "light romantic", "banter spicy", 1, "A hockey star trades tutoring for a fake date with a music student.", "", "Spicy."],
+["Wildfire", "Hannah Grace", "romance", "romantic", "spicy", 0, "Two camp counsellors with a history spend a summer together.", "", "Spicy."],
+["It Happened One Summer", "Tessa Bailey", "romance", "light romantic", "banter spicy", 1, "A Hollywood party girl is exiled to a fishing town and a grumpy captain.", "", "Spicy."],
+["Red, White & Royal Blue", "Casey McQuiston", "romance", "light romantic", "banter heart", 1, "The president's son falls for the Prince of England.", "", ""],
+["The Kiss Quotient", "Helen Hoang", "romance", "romantic", "spicy heart", 0, "An economist with autism hires an escort to practise dating.", "", "Spicy."],
+["The Unhoneymooners", "Christina Lauren", "romance", "light", "banter", 0, "Enemies take a free honeymoon after the whole wedding party gets food poisoning.", "", ""],
+["Love, Theoretically", "Ali Hazelwood", "romance", "light romantic", "banter spicy", 0, "A physicist's secret fake-dating job collides with her career rival.", "", ""],
+["Not in Love", "Ali Hazelwood", "romance", "romantic", "spicy", 0, "A scientist and a venture capitalist fight an attraction neither wants.", "", "Spicy."],
+["Never Lie", "Freida McFadden", "thriller", "edge", "twist fast", 1, "Newlyweds snowed in at a missing psychiatrist's house find her session tapes.", "", ""],
+["The Housemaid's Secret", "Freida McFadden", "thriller", "edge", "twist fast", 0, "Millie's new cleaning job comes with a locked guest room.", "", "Read The Housemaid first."],
+["The Teacher", "Freida McFadden", "thriller", "edge", "twist", 0, "A high-school scandal hides something darker.", "", ""],
+["The Guest List", "Lucy Foley", "thriller mystery", "edge", "twist atmos", 0, "A murder at a wedding on a remote Irish island.", "", ""],
+["Gone Girl", "Gillian Flynn", "thriller", "edge", "dark twist", 0, "A woman vanishes on her anniversary and her husband becomes the suspect.", "", ""],
+["Rock Paper Scissors", "Alice Feeney", "thriller", "edge", "twist", 0, "A troubled couple's weekend away in a Scottish chapel goes very wrong.", "", ""],
+["The Last Thing He Told Me", "Laura Dave", "thriller mystery", "edge", "twist", 0, "A woman's husband disappears, leaving her his teenage daughter and a note.", "", ""],
+["None of This Is True", "Lisa Jewell", "thriller", "edge", "dark twist", 1, "A podcaster meets her 'birthday twin', who wants her story told.", "", ""],
+["The Maid", "Nita Prose", "mystery", "cozy light", "heart twist", 0, "A hotel maid becomes the suspect when a guest dies.", "", ""],
+["The Thursday Murder Club", "Richard Osman", "mystery", "cozy light", "banter heart", 0, "Four retirees solve murders from their retirement village.", "", ""],
+["Everyone in My Family Has Killed Someone", "Benjamin Stevenson", "mystery", "light curious", "banter twist", 0, "A crime-fiction writer tells the truth about his very murderous family.", "", ""],
+["We Were Liars", "E. Lockhart", "mystery ya", "cry edge", "twist atmos", 1, "A teen on her family's private island tries to remember one summer.", "", ""],
+["One of Us Is Lying", "Karen M. McManus", "mystery ya", "edge", "twist fast", 0, "Five students walk into detention and only four walk out.", "", ""],
+["And Then There Were None", "Agatha Christie", "mystery", "edge spooky", "twist", 0, "Ten strangers on an island are killed one by one.", "", ""],
+["Big Little Lies", "Liane Moriarty", "mystery", "edge light", "twist", 0, "School-gate politics end in a death at trivia night.", "", ""],
+["Jane Eyre", "Charlotte Brontë", "historical romance", "romantic curious", "atmos slowburn", 0, "An orphaned governess falls for her brooding employer, who has a secret.", "", "Public domain, so it's free to download."],
+["Pride and Prejudice", "Jane Austen", "romance historical", "light romantic", "banter slowburn", 0, "Elizabeth Bennet and Mr Darcy misjudge each other.", "", "Public domain, so it's free to download."],
+["Wuthering Heights", "Emily Brontë", "historical romance", "romantic spooky", "dark atmos", 1, "Doomed love on the Yorkshire moors.", "Back in the spotlight with the new film adaptation.", "Public domain, so it's free to download."],
+["Frankenstein", "Mary Shelley", "horror", "spooky curious", "atmos dark", 0, "A scientist creates life and abandons it.", "", "Public domain, so it's free to download."],
+["Anne of Green Gables", "L.M. Montgomery", "historical ya", "cozy light", "heart", 0, "A talkative orphan is sent by mistake to a PEI farm.", "A Canadian classic.", "Public domain, so it's free to download."],
+["The Nightingale", "Kristin Hannah", "historical", "cry", "emo epic", 1, "Two sisters resist the occupation in wartime France.", "", ""],
+["The Four Winds", "Kristin Hannah", "historical", "cry", "emo", 0, "A mother fights for her children through the Dust Bowl.", "", ""],
+["Daisy Jones & The Six", "Taylor Jenkins Reid", "historical", "curious romantic", "emo", 1, "The oral history of a 1970s rock band's rise and break-up.", "", ""],
+["Malibu Rising", "Taylor Jenkins Reid", "historical literary", "curious", "emo", 0, "Four famous siblings throw one legendary party.", "", ""],
+["Tomorrow, and Tomorrow, and Tomorrow", "Gabrielle Zevin", "literary", "cry curious", "emo", 1, "Two friends make video games together over thirty years.", "", ""],
+["Where the Crawdads Sing", "Delia Owens", "mystery literary", "curious cry", "atmos", 1, "A girl raised alone in a North Carolina marsh is accused of murder.", "", ""],
+["The Book Thief", "Markus Zusak", "historical ya", "cry", "emo", 1, "Death narrates the story of a girl who steals books in Nazi Germany.", "", ""],
+["All the Light We Cannot See", "Anthony Doerr", "historical", "cry", "atmos emo", 0, "A blind French girl and a German boy's paths cross in WWII.", "", ""],
+["Hello Beautiful", "Ann Napolitano", "literary", "cry", "emo", 1, "Four sisters and the man who changes their family forever.", "", ""],
+["The Wedding People", "Alison Espach", "literary", "light cry", "heart", 1, "A woman arrives at a Newport hotel on her worst day and gets swept into a stranger's wedding.", "", ""],
+["James", "Percival Everett", "historical literary", "curious edge", "emo", 1, "Huckleberry Finn retold by Jim.", "", ""],
+["Intermezzo", "Sally Rooney", "literary", "curious cry", "emo", 0, "Two grieving brothers fall into complicated loves.", "", ""],
+["Eleanor Oliphant Is Completely Fine", "Gail Honeyman", "literary", "cozy cry", "heart", 0, "A lonely woman's routine is upended by an unexpected friendship.", "", ""],
+["A Man Called Ove", "Fredrik Backman", "literary", "cozy cry", "heart", 0, "A grumpy widower's plans are ruined by his new neighbours.", "", ""],
+["Anxious People", "Fredrik Backman", "literary", "light cozy", "heart twist", 0, "A failed bank robber takes an apartment viewing hostage.", "", ""],
+["Before the Coffee Gets Cold", "Toshikazu Kawaguchi", "literary fantasy", "cozy cry", "heart", 1, "A Tokyo café lets you travel in time, until your coffee goes cold.", "", ""],
+["Piranesi", "Susanna Clarke", "fantasy", "curious", "atmos twist", 1, "A man lives alone in an endless house of statues and tides.", "", ""],
+["If We Were Villains", "M.L. Rio", "mystery literary", "edge", "dark atmos", 1, "Shakespeare students, a death and a ten-year-old secret.", "", ""],
+["Never Let Me Go", "Kazuo Ishiguro", "scifi literary", "cry", "emo atmos", 0, "Friends from an English boarding school learn what they're for.", "", ""],
+["Life of Pi", "Yann Martel", "literary", "adventurous curious", "atmos", 0, "A boy shares a lifeboat with a Bengal tiger.", "By a Canadian author.", ""],
+["The Haunting of Hill House", "Shirley Jackson", "horror", "spooky", "atmos", 0, "Four people spend a summer in a house that's alive.", "", ""],
+["How to Sell a Haunted House", "Grady Hendrix", "horror", "spooky light", "banter", 0, "Estranged siblings clear out their late parents' very creepy house.", "", ""],
+["The Only One Left", "Riley Sager", "thriller horror", "spooky edge", "twist atmos", 0, "A caregiver tends to a woman accused of murdering her family decades ago.", "", ""],
+["Interview with the Vampire", "Anne Rice", "horror", "spooky", "atmos dark", 0, "A vampire tells his life story to a reporter.", "", ""],
+["The Shining", "Stephen King", "horror", "spooky edge", "dark", 0, "A family winters alone in a haunted hotel.", "", ""],
+["Dune", "Frank Herbert", "scifi", "adventurous curious", "epic", 0, "A noble heir is caught in a war over a desert planet.", "", ""],
+["The Martian", "Andy Weir", "scifi", "light adventurous", "fast", 0, "An astronaut stranded on Mars has to science his way home.", "", ""],
+["Red Rising", "Pierce Brown", "scifi", "adventurous edge", "fast dark epic", 0, "A miner infiltrates the ruling caste to bring it down.", "", "Violent."],
+["Dark Matter", "Blake Crouch", "scifi thriller", "edge", "fast twist", 0, "A man is kidnapped into a version of his life he didn't choose.", "", ""],
+["The Long Way to a Small, Angry Planet", "Becky Chambers", "scifi", "cozy", "heart", 0, "A found-family crew tunnels through space.", "", ""],
+["Station Eleven", "Emily St. John Mandel", "scifi literary", "curious cry", "atmos", 0, "A travelling theatre troupe after a pandemic.", "By a Canadian author.", ""],
+["The Handmaid's Tale", "Margaret Atwood", "scifi", "edge curious", "dark", 0, "A woman's life under a theocratic regime.", "A Canadian classic.", ""],
+["All Systems Red", "Martha Wells", "scifi", "light", "banter fast", 0, "A security robot just wants to watch its shows.", "", ""],
+["The Summer I Turned Pretty", "Jenny Han", "romance ya", "romantic", "heart", 1, "A summer love triangle with two brothers.", "", ""],
+["To All the Boys I've Loved Before", "Jenny Han", "romance ya", "light romantic", "heart", 0, "Secret love letters get mailed to every crush.", "", ""],
+["They Both Die at the End", "Adam Silvera", "ya literary", "cry", "emo", 1, "Two boys told they'll die today spend it together.", "", ""],
+["Heartstopper", "Alice Oseman", "romance ya", "cozy light", "heart", 1, "Two schoolboys become friends, and then more.", "A graphic novel.", ""],
+["Aristotle and Dante Discover the Secrets of the Universe", "Benjamin Alire Sáenz", "romance ya", "cry romantic", "slowburn heart", 1, "Two teen boys forge a life-changing friendship.", "", ""],
+["The Fault in Our Stars", "John Green", "romance ya", "cry", "emo", 0, "Two teens meet at a cancer support group.", "", ""],
+["Legendborn", "Tracy Deonn", "fantasy ya", "adventurous", "epic", 0, "A grieving teen infiltrates a secret Arthurian society.", "", ""],
+["Educated", "Tara Westover", "memoir", "curious", "emo", 0, "From an isolated survivalist family to a Cambridge PhD.", "", ""],
+["Crying in H Mart", "Michelle Zauner", "memoir", "cry", "emo", 1, "A musician grieves her Korean mother through food.", "", ""],
+["The Glass Castle", "Jeannette Walls", "memoir", "curious", "emo", 0, "Growing up with brilliant, chaotic parents.", "", ""],
+["Born a Crime", "Trevor Noah", "memoir", "light curious", "banter", 0, "Growing up mixed-race in apartheid South Africa.", "", ""],
+["Becoming", "Michelle Obama", "memoir", "curious", "heart", 0, "The former First Lady's life story.", "", ""],
+["Wild", "Cheryl Strayed", "memoir", "adventurous", "emo", 0, "A woman hikes the Pacific Crest Trail after loss.", "", ""]
+].map(([t,a,g,m,v,hot,blurb,buzz,heads],i)=>({id:'c'+i,t,a,g:g.split(' '),m:m.split(' '),v:v.split(' '),hot,blurb,buzz,heads}));
+
+const SIMILAR={'sarah j. maas':['Jennifer L. Armentrout','Rebecca Yarros','Carissa Broadbent','Callie Hart'],'rebecca yarros':['Sarah J. Maas','Lauren Roberts','Carissa Broadbent','Jennifer L. Armentrout'],'colleen hoover':['Mia Sheridan','Tarryn Fisher','Freida McFadden','Abby Jimenez'],'emily henry':['Abby Jimenez','Ali Hazelwood','Christina Lauren','Lynn Painter'],'ali hazelwood':['Emily Henry','Tessa Bailey','Hannah Grace','Mazey Eddings'],'freida mcfadden':['Alex Michaelides','Lucy Foley','Ruth Ware','Riley Sager'],'taylor jenkins reid':['Kristin Hannah','Emma Straub','Ann Napolitano','Kate Quinn'],'kristin hannah':['Taylor Jenkins Reid','Kate Quinn','Lisa Wingate','Martha Hall Kelly'],'leigh bardugo':['Holly Black','V.E. Schwab','Marie Lu','Rachel Gillig'],'madeline miller':['Jennifer Saint','Natalie Haynes','Pat Barker','Costanza Casati'],'tj klune':['Becky Chambers','Travis Baldree','Heather Fawcett','Sangu Mandanna'],'chloe walsh':['Elle Kennedy','Hannah Grace','Ana Huang','Lucy Score'],'elle kennedy':['Hannah Grace','Rachel Reid','Chloe Walsh','Sarina Bowen'],'rachel reid':['Elle Kennedy','Alexis Hall','Casey McQuiston','Sarina Bowen'],'holly jackson':['Karen M. McManus','Jennifer Lynn Barnes','Kathleen Glasgow','E. Lockhart'],'donna tartt':['M.L. Rio','R.F. Kuang','Ottessa Moshfegh','Tana French'],'sally rooney':['Coco Mellors','Naoise Dolan','Meg Mason','Raven Leilani'],'carissa broadbent':['Sarah J. Maas','Rachel Gillig','Jennifer L. Armentrout','Elizabeth Helen'],'ana huang':['Lucy Score','Elle Kennedy','Catharina Maura','L.J. Shen'],'alex michaelides':['Freida McFadden','Lucy Foley','Ruth Ware','Riley Sager'],'suzanne collins':['Veronica Roth','Marie Lu','Pierce Brown','Lauren Roberts'],'joe hill':['Stephen King','Grady Hendrix','Paul Tremblay','Silvia Moreno-Garcia'],'stephanie garber':['Holly Black','Rachel Gillig','Erin Morgenstern','Adalyn Grace']};
+
+const PAL=[['#3b1d3a','#7a3b6e'],['#1f3a5c','#4a6fa5'],['#6b2d2d','#b5574b'],['#2e4a3f','#5f8c6d'],['#5a3e1b','#c08b3e'],['#2a2350','#6b5aa8'],['#7a2948','#d0657f'],['#173b3f','#3e8b88']];
+const hash=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
+const pal=s=>PAL[hash(s)%PAL.length];
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+
+/* ---------- storage: shared db when available, this browser otherwise ---------- */
+let books=[], db=null, mode='local', writeOk=true;
+const LS='rita-library-v1';
+try{books=JSON.parse(localStorage.getItem(LS)||'[]')}catch(e){books=[]}
+const saveLocal=()=>{try{localStorage.setItem(LS,JSON.stringify(books))}catch(e){}};
+const syncNote=()=>{$('#syncNote').textContent=mode==='db'?(writeOk?'Saved to your Reading Room: it\'s there on every device you open this page on.':'You can view this library but not change it. Ask for Contributor access to add books.'):SOLO?'Saved on this phone. Tap Back up every so often so you never lose your shelf.':'Saving in this browser for now.'};
+
+async function initDb(){
+  try{
+    const c=window.claude; if(!c||!c.use) return;
+    db=await c.use('db'); if(!db) return;
+    let first=true; const timer=setTimeout(()=>{if(first)$('#syncNote').textContent='Your saved library is taking a moment to load…'},10000);
+    db.collection('library').onSnapshot(snap=>{
+      if(snap.metadata.fromCache&&first&&snap.empty) return;
+      const remote=snap.docs.map(d=>({...d.data(),id:d.id}));
+      if(first&&!snap.metadata.fromCache){clearTimeout(timer);first=false;mode='db';
+        if(snap.empty&&books.length){const local=books.slice();books=[];local.forEach(b=>put(b));return}}
+      if(!snap.metadata.fromCache){first=false;clearTimeout(timer)}
+      mode='db';books=remote;saveLocal();renderAll();
+    },e=>{clearTimeout(timer);mode='local';syncNote()});
+  }catch(e){}
+}
+async function put(b){
+  if(mode==='db'&&db){try{await db.collection('library').doc(b.id).set(b)}catch(e){if(e&&e.code==='invalid_argument'){writeOk=false;syncNote();toast('You don\'t have permission to save here.')}else toast('Couldn\'t save just now. Try again in a moment.')}}
+  else{const i=books.findIndex(x=>x.id===b.id);i>=0?books[i]=b:books.unshift(b);saveLocal();renderAll()}
+}
+async function del(id){
+  if(mode==='db'&&db){try{await db.collection('library').doc(id).delete()}catch(e){toast('Couldn\'t remove it just now.')}}
+  else{books=books.filter(b=>b.id!==id);saveLocal();renderAll()}
+}
+const inLib=t=>books.find(b=>norm(b.title)===norm(t));
+
+/* ---------- Claude ---------- */
+let sample; const getSample=async()=>{if(sample!==undefined)return sample;try{sample=window.claude?.use?await window.claude.use('sample'):null}catch(e){sample=null}return sample};
+async function ask(prompt){
+  const s=await getSample(); if(!s) throw {code:'none'};
+  const r=await s(prompt,{modelTier:'default'}); const txt=r.text||'';
+  const m=txt.match(/\[[\s\S]*\]|\{[\s\S]*\}/); if(!m) throw {code:'parse'};
+  return JSON.parse(m[0]);
+}
+const libSummary=()=>books.filter(b=>b.status!=='tbr').slice(0,60).map(b=>`${b.title} by ${b.author} — ${b.rating||'?'}/10, read again: ${b.again||'?'}`).join('\n')||'(none yet)';
+const today=new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long'});
+const aiErr=e=>e&&e.code==='none'?'':e&&e.code==='rate_limited'?'Claude is busy, so try again in a minute.':e&&e.code==='not_granted'?'Claude access wasn\'t allowed, so these come from the built-in list.':'Claude couldn\'t answer just now, so here are picks from the built-in list.';
+
+/* ---------- rendering ---------- */
+function bookCard(b,opt={}){
+  const [c1,c2]=pal(b.t);const have=inLib(b.t);
+  const flag=b.hot===2?'<span class="flag">New this fall</span>':b.hot===1?'<span class="flag">Trending</span>':'';
+  const tags=[...(b.g||[]).map(x=>GENRES[x]),...(b.v||[]).slice(0,2).map(x=>VIBES[x])].filter(Boolean);
+  return `<article class="bk"><div class="cov" style="background:linear-gradient(150deg,${c1},${c2})">${flag}<b>${esc(b.t)}</b><small>${esc(b.a)}</small></div>
+  <div class="bd">${tags.length?`<div class="tags">${tags.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+  <p>${esc(b.blurb)}</p>${opt.why?`<p class="why">${esc(opt.why)}</p>`:''}${opt.buzz&&b.buzz?`<p class="why"><b>Why BookTok loves it:</b> ${esc(b.buzz)}</p>`:''}
+  ${opt.heads&&b.heads?`<p class="heads"><b>Good to know:</b> ${esc(b.heads)}</p>`:''}
+  <div class="acts">${have?`<span class="pill ${have.status==='tbr'?'t':'y'}">${have.status==='tbr'?'On your list':'On your shelf'}</span>`:`<button class="btn sm" data-add="${esc(b.t)}" data-au="${esc(b.a)}" data-g="${esc((b.g||[])[0]||'')}">+ Library</button><button class="btn sm" data-tbr="${esc(b.t)}" data-au="${esc(b.a)}" data-g="${esc((b.g||[])[0]||'')}">Want to read</button>`}
+  <button class="btn sm" data-find="${esc(b.t)}" data-au="${esc(b.a)}">Find this book</button>
+  ${opt.rev?`<a class="btn sm" href="https://www.goodreads.com/search?q=${enc(b.t+' '+b.a)}" target="_blank" rel="noopener">Read reviews</a><button class="btn sm" data-rev="${esc(b.t)}" data-au="${esc(b.a)}">Full review</button>`:''}</div>
+  ${opt.rev?`<div class="why" data-revout="${esc(b.t)}"></div>`:''}</div></article>`;
+}
+
+/* ---------- Rita's taste, learned from her library ---------- */
+let T={n:0,g:{},m:{},v:{},fav:[],dis:new Set(),sim:new Map(),loved:[],topG:[]};
+function buildTaste(){
+  const read=books.filter(b=>b.status!=='tbr'),g={},m={},v={},au={},loved=[];
+  for(const b of read){
+    const r=+b.rating||6,w=(r-5.5)/2.5+(b.again==='yes'?.6:b.again==='no'?-.3:0);
+    if(b.genre)g[b.genre]=(g[b.genre]||0)+w;
+    const k=norm(b.author);au[k]=au[k]||{name:b.author,sum:0,n:0,best:0};au[k].sum+=w;au[k].n++;au[k].best=Math.max(au[k].best,r);
+    const c=B.find(x=>norm(x.t)===norm(b.title));
+    if(c){for(const x of c.m)m[x]=(m[x]||0)+w;for(const x of c.v)v[x]=(v[x]||0)+w;for(const x of c.g)if(x!==b.genre)g[x]=(g[x]||0)+w*.5;if(w>.7)loved.push({...c,title:b.title,r})}
+  }
+  const fav=Object.entries(au).map(([k,a])=>({k,name:a.name,avg:a.sum/a.n,n:a.n,best:a.best})).filter(a=>a.avg>.55).sort((a,b)=>b.avg*Math.sqrt(b.n)-a.avg*Math.sqrt(a.n));
+  const dis=new Set(Object.entries(au).filter(([k,a])=>a.sum/a.n<-.4).map(([k])=>k));
+  const sim=new Map();for(const f of fav){const key=Object.keys(SIMILAR).find(x=>norm(x)===f.k);if(key)for(const n of SIMILAR[key])if(!au[norm(n)]&&!sim.has(norm(n)))sim.set(norm(n),f.name)}
+  T={n:read.length,g,m,v,fav,dis,sim,loved:loved.sort((a,b)=>b.r-a.r),topG:Object.entries(g).filter(([,x])=>x>.3).sort((a,b)=>b[1]-a[1]).map(([k])=>k)};
+}
+function tasteScore(b){
+  if(T.n<2)return {s:0,why:''};
+  let s=0;const why=[];const a=norm(b.a);
+  const fa=T.fav.find(f=>f.k===a);
+  if(fa){s+=5;why.push(`More from ${b.a}, one of your favourites`)}
+  else if(T.sim.has(a)){s+=2.5;why.push(`Writes like ${T.sim.get(a)}, who you love`)}
+  if(T.dis.has(a))s-=5;
+  const gs=Math.max(0,...b.g.map(x=>T.g[x]||0));s+=Math.min(gs,4)*1.2;
+  const lowG=b.g.every(x=>(T.g[x]||0)<-.3);if(lowG)s-=2;
+  let tv=0;for(const x of b.m)tv+=T.m[x]||0;for(const x of b.v)tv+=T.v[x]||0;s+=Math.max(-2,Math.min(tv*.25,3));
+  const twin=T.loved.find(l=>norm(l.t)!==norm(b.t)&&l.g.some(x=>b.g.includes(x))&&[...l.m,...l.v].filter(x=>b.m.includes(x)||b.v.includes(x)).length>=3);
+  if(twin){s+=1.2;why.push(`Because you gave ${twin.title} ${twin.r}/10`)}
+  if(!why.length&&gs>.8)why.push(`In ${GENRES[b.g.find(x=>(T.g[x]||0)===gs)]||'a genre'}, one of your top-rated genres`);
+  return {s,why:why[0]||''};
+}
+const tasteText=()=>T.n<2?'':`Favourite authors: ${T.fav.slice(0,6).map(f=>f.name).join(', ')||'none yet'}. Top genres: ${T.topG.slice(0,4).map(x=>GENRES[x]).join(', ')||'unclear'}. Authors she disliked: ${[...T.dis].join(', ')||'none'}.`;
+
+function drawShelf(){
+  const s=$('#shelf'),W=s.clientWidth||900,H=s.clientHeight||150,k=H/150;
+  let src=books.filter(b=>b.status!=='tbr').sort((a,b)=>(a.added||0)-(b.added||0)).map(b=>({t:b.title,a:b.author,r:+b.rating||0,id:b.id}));
+  for(let i=0;src.length<60;i++)src.push({t:'slot'+i,ghost:1});
+  let x=6,out='';
+  for(const [i,b] of src.entries()){
+    const h=hash(b.t),w=Math.round((18+h%16)*Math.max(k,.75)),ht=(84+(h>>3)%46)*k,[c1,c2]=pal(b.t);if(x+w>W-56)break;
+    const tilt=(!b.ghost&&i%11===7)?`transform="rotate(-8 ${x+w} ${H-14})"`:'';
+    if(b.ghost){out+=`<rect x="${x+.5}" y="${H-14-ht+.5}" width="${w-1}" height="${ht-1}" rx="2" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.16)" stroke-dasharray="3 3"/>`;x+=w+2;continue}
+    out+=`<g ${tilt} data-edit="${esc(b.id)}" style="cursor:pointer"><title>${esc(b.t)}, ${esc(b.a)}${b.r?` · ${b.r}/10`:''}</title><rect x="${x}" y="${H-14-ht}" width="${w}" height="${ht}" rx="2" fill="${(h&1)?c1:c2}"/><rect x="${x}" y="${H-14-ht}" width="3" height="${ht}" fill="rgba(255,255,255,.18)"/><rect x="${x+4}" y="${H-14-ht+12}" width="${w-8}" height="3" fill="${b.r>=9?'#f2b33d':'rgba(255,255,255,.35)'}"/><rect x="${x+4}" y="${H-14-22}" width="${w-8}" height="2" fill="rgba(255,255,255,.25)"/></g>`;
+    x+=w+(i%11===7?8:2);
+  }
+  out+=`<rect x="${W-44}" y="${H-14-66*k}" width="12" height="${66*k}" rx="3" fill="#f2b33d"/><rect x="${W-44}" y="${H-14-66*k}" width="34" height="9" rx="3" fill="#f2b33d"/>`;
+  out+=`<rect x="0" y="${H-14}" width="${W}" height="10" rx="2" fill="#6e3a68"/><rect x="0" y="${H-4}" width="${W}" height="4" fill="rgba(0,0,0,.3)"/>`;
+  s.innerHTML=out;
+}
+const ro=new ResizeObserver(()=>drawShelf());ro.observe($('#shelf'));
+
+function chips(id,obj,name){$(id).innerHTML=Object.entries(obj).map(([k,v])=>`<label class="chip"><input type="checkbox" name="${name}" value="${k}"><span>${v}</span></label>`).join('')}
+chips('#c-mood',MOODS,'mood');chips('#c-genre',GENRES,'genre');chips('#c-vibe',VIBES,'vibe');
+const picked=n=>$$(`input[name=${n}]:checked`).map(i=>i.value);
+
+function scoreBooks(){
+  const m=picked('mood'),g=picked('genre'),v=picked('vibe'),hotOnly=$('#onlyHot').checked;
+  const any=m.length+g.length+v.length;
+  let list=B.filter(b=>!hotOnly||b.hot).map(b=>{
+    const gm=g.filter(x=>b.g.includes(x)).length,mm=m.filter(x=>b.m.includes(x)).length,vm=v.filter(x=>b.v.includes(x)).length;
+    const ts=tasteScore(b),me=T.n>=2;
+    let s=gm*4+mm*3+vm*2+(b.hot?(me?.6:1.5):0)+(b.hot===2?.4:0)+ts.s;
+    if(g.length&&!gm)s-=8; const own=inLib(b.t); if(own&&own.status!=='tbr')s-=50;
+    const why=[mm&&`fits your ${m.filter(x=>b.m.includes(x)).map(x=>MOODS[x].toLowerCase()).join(' + ')} mood`,vm&&`${v.filter(x=>b.v.includes(x)).map(x=>VIBES[x].toLowerCase()).join(', ')}`].filter(Boolean).join(' · ');
+    return {b,s,gm,own:own&&own.status!=='tbr',why:[ts.why,why&&'Matches: '+why].filter(Boolean).join(' · ')};
+  }).sort((a,b)=>b.s-a.s);
+  const exact=list.filter(x=>!x.own&&x.s>(any?1.5:-10)&&(!g.length||x.gm));
+  const close=any?list.filter(x=>!x.own&&!exact.includes(x)).map(x=>({...x,why:'Close match'+(x.why?' · '+x.why:'')})):[];
+  return {list:exact.concat(close).slice(0,60),any,exact:exact.length};
+}
+const PAGE=20,shown={};
+function paged(id,cards,more){shown[id]=more?shown[id]+PAGE:PAGE;const n=Math.min(shown[id],cards.length);
+  $(id).innerHTML=cards.slice(0,n).join('')+(n<cards.length?`<div class="morebox"><button class="btn" data-more="${id}">Show ${Math.min(PAGE,cards.length-n)} more <span class="note">(${n} of ${cards.length})</span></button></div>`:'');
+  $(id)._cards=cards}
+function renderTaste(){
+  const box=$('#tasteBox');
+  if(T.n<2){box.innerHTML='';return}
+  const favB=T.fav.slice(0,5),sims=[...T.sim.entries()].slice(0,4),gen=T.topG.slice(0,3);
+  box.innerHTML=`<section class="taste"><div><h2>Your reading taste</h2><p class="sub">Learned from ${T.n} books you've read. It updates every time you rate one.</p></div>
+  ${favB.length?`<div><span class="lbl">Authors you love</span><div class="chips">${favB.map(f=>`<button class="tchip" data-au-like="${esc(f.name)}">${esc(f.name)}<small>${f.n>1?f.n+' books':'best '+f.best+'/10'}</small></button>`).join('')}</div></div>`:''}
+  ${gen.length?`<div><span class="lbl">Genres you rate highest</span><div class="chips">${gen.map(k=>`<button class="tchip" data-genre="${k}">${esc(GENRES[k])}</button>`).join('')}</div></div>`:''}
+  ${sims.length?`<div><span class="lbl">Authors you'd probably like</span><div class="chips">${sims.map(([k,src])=>{const n=SIMILAR[Object.keys(SIMILAR).find(x=>norm(x)===norm(src))]?.find(x=>norm(x)===k)||k;return `<button class="tchip" data-au-like="${esc(n)}">${esc(n)}<small>like ${esc(src)}</small></button>`}).join('')}</div></div>`:''}
+  </section>`;
+}
+function orderChips(){
+  const fav=new Set(T.n>=2?T.topG.slice(0,3):[]);
+  const rank=k=>fav.has(k)?T.topG.indexOf(k)-10:Object.keys(GENRES).indexOf(k);
+  const box=$('#c-genre'),labels=[...box.children];
+  labels.sort((a,b)=>rank(a.querySelector('input').value)-rank(b.querySelector('input').value)).forEach(l=>{l.classList.toggle('fave',fav.has(l.querySelector('input').value));box.appendChild(l)});
+}
+function renderHome(){
+  const {list,any,exact}=scoreBooks();
+  const me=T.n>=2;
+  $('#resT').textContent=any?`${exact} book${exact===1?'':'s'} that fit your mood${list.length>exact?`, plus ${list.length-exact} close matches`:''}`:me?'Picked for you, Rita':'Trending picks for you';
+  $('#resS').textContent=me?`Shaped by the ${T.n} books on your shelf: authors you love and the genres you rate highest come first.`:any?'Best matches first. Trending titles get a small boost.':'Rate a couple of books in My Library and this list will start shaping itself around you.';
+  renderTaste();
+  if(list.length)paged('#homeRes',list.map(x=>bookCard(x.b,{why:x.why})));else $('#homeRes').innerHTML=`<div class="empty" style="grid-column:1/-1">Nothing on the list matches all of that. Try fewer boxes, or tap Jake's picks.</div>`;
+}
+$('#picker').addEventListener('submit',e=>{e.preventDefault();renderHome();$('#resT').scrollIntoView({behavior:'smooth',block:'start'})});
+$('#picker').addEventListener('change',()=>{renderHome();const n=$$('#picker input[name]:checked').length;$('#selCnt').textContent=n||''});
+$('#clearPick').onclick=()=>{$$('#picker input').forEach(i=>i.checked=false);$('#selCnt').textContent='';renderHome();$('#freshWrap').hidden=true};
+
+$('#askFresh').onclick=async()=>{
+  const btn=$('#askFresh'),m=picked('mood').map(x=>MOODS[x]),g=picked('genre').map(x=>GENRES[x]),v=picked('vibe').map(x=>VIBES[x]);
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Jake is thinking…';$('#freshWrap').hidden=false;$('#freshRes').innerHTML='';$('#freshWrap').scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const r=await ask(`You are a well-read bookseller who follows BookTok closely. It is ${today}. Recommend 50 books for Rita, an avid reader, best fit first.
+Mood: ${m.join(', ')||'any'}. Genre: ${g.join(', ')||'any'}. Vibe: ${v.join(', ')||'any'}. ${$('#onlyHot').checked?'Prefer books released or trending in the last year.':'Favour books that are popular or trending now, mixed with beloved favourites.'}
+Her reading history with ratings:\n${libSummary()}\n${tasteText()} Lean strongly toward her favourite authors' other books, authors with a similar style, and her top-rated genres, unless her mood picks point elsewhere.\nDo not recommend any of these, which she has already read or listed:\n${books.map(b=>b.title).join('; ')||'(none)'}
+Return ONLY a JSON array of 50 objects with keys: title, author, genre (one of: ${Object.keys(GENRES).join(', ')}), blurb (max 15 words, no spoilers), why (max 12 words on why it fits her). Only real, published books. No duplicates.`);
+    const fr=(Array.isArray(r)?r:[]).filter(x=>x&&x.title&&!inLib(x.title)).slice(0,60).map(x=>bookCard({t:x.title,a:x.author,g:[x.genre],v:[],blurb:x.blurb},{why:x.why}));if(fr.length)paged('#freshRes',fr);else $('#freshRes').innerHTML='<div class="empty">No picks came back. Try again.</div>';
+  }catch(e){
+    const seen=new Set([...$$('#homeRes .bk b')].slice(0,6).map(x=>x.textContent));
+    const pool=scoreBooks().list.length>=40?scoreBooks().list:B.filter(b=>!inLib(b.t)).map(b=>({b,...tasteScore(b)})).sort((a,b)=>b.s-a.s);
+    const pick=pool.filter(x=>!seen.has(x.b.t)).map((x,i)=>({x,r:i+Math.random()*25})).sort((a,b)=>a.r-b.r).slice(0,50).map(({x})=>bookCard(x.b,{why:x.why}));
+    const msg=aiErr(e);
+    if(pick.length)paged('#freshRes',pick);else $('#freshRes').innerHTML=`<div class="empty" style="grid-column:1/-1">${esc(msg||'No picks this time. Try different boxes.')}</div>`;
+  }
+  btn.disabled=false;btn.innerHTML='<span class="lg">Ask Jake for fresh picks</span><span class="sh">Jake\'s picks</span>';
+};
+
+/* library */
+function renderLib(){
+  const read=books.filter(b=>b.status!=='tbr'),rated=read.filter(b=>b.rating);
+  const avg=rated.length?(rated.reduce((s,b)=>s+ +b.rating,0)/rated.length).toFixed(1):'–';
+  const gc={};read.forEach(b=>{if(b.genre)gc[b.genre]=(gc[b.genre]||0)+1});const fav=Object.entries(gc).sort((a,b)=>b[1]-a[1])[0];
+  $('#stats').innerHTML=[[read.length,'books read'],[avg,'average rating'],[read.filter(b=>b.again==='yes').length,'would read again'],[fav?GENRES[fav[0]]||fav[0]:'–','favourite genre']].map(([n,l])=>`<div class="stat"><b>${esc(n)}</b><span>${l}</span></div>`).join('');
+  const q=norm($('#libQ').value),f=$('#libF').value,s=$('#libS').value;
+  let list=books.filter(b=>(!q||norm(b.title+' '+b.author).includes(q))&&(f==='all'||(f==='read'&&b.status!=='tbr')||(f==='tbr'&&b.status==='tbr')||(f==='again'&&b.again==='yes')));
+  list.sort(s==='rating'?(a,b)=>(b.rating||0)-(a.rating||0):s==='title'?(a,b)=>a.title.localeCompare(b.title):s==='author'?(a,b)=>a.author.localeCompare(b.author):(a,b)=>(b.added||0)-(a.added||0));
+  $('#libList').innerHTML=list.length?list.map(b=>{const [c1]=pal(b.title);const r=+b.rating||0;
+    return `<div class="li"><div class="sp" style="background:${c1}"></div><div><h3>${esc(b.title)}</h3><div class="meta">${esc(b.author)}${b.genre?' · '+esc(GENRES[b.genre]||b.genre):''}</div>
+    ${b.status==='tbr'?'':`<div class="row" style="gap:10px;margin-top:4px"><div class="score" aria-label="${r} out of 10">${Array.from({length:10},(_,i)=>`<i class="${i<r?'f':''}"></i>`).join('')}</div><b>${r||'–'}/10</b></div>`}
+    ${b.notes?`<div class="meta" style="margin-top:4px">“${esc(b.notes)}”</div>`:''}</div>
+    <div class="ra">${b.status==='tbr'?'<span class="pill t">Want to read</span>':b.again==='yes'?'<span class="pill y">Would read again</span>':b.again==='no'?'<span class="pill n">Once was enough</span>':''}
+    <button class="btn sm" data-find="${esc(b.title)}" data-au="${esc(b.author)}">Find</button><button class="btn sm" data-like="${esc(b.title)}">More like this</button><button class="btn sm" data-edit="${esc(b.id)}">Edit</button></div></div>`}).join('')
+    :`<div class="empty">${books.length?'No books match that search.':'Your shelf is empty so far. Add the last few books you read to get recommendations tuned to you.'}</div>`;
+  syncNote();
+}
+$('#bkOut').onclick=()=>{try{const blob=new Blob([JSON.stringify({app:'rita-reading-room',saved:new Date().toISOString(),books},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`rita-library-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();toast('Backup saved to your downloads')}catch(e){toast('Couldn\'t make a backup here.')}};
+$('#bkIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());const list=(Array.isArray(d)?d:d.books)||[];let n=0;
+  for(const b of list){if(!b||typeof b.title!=='string'||typeof b.author!=='string')continue;const x={id:String(b.id||('b'+Math.random().toString(36).slice(2))).replace(/[^\w.~:@+-]/g,'').slice(0,60)||'b'+n,title:b.title.slice(0,200),author:b.author.slice(0,120),genre:GENRES[b.genre]?b.genre:'',status:b.status==='tbr'?'tbr':'read',rating:Math.max(0,Math.min(10,+b.rating||0)),again:b.again==='yes'||b.again==='no'?b.again:'',notes:String(b.notes||'').slice(0,1000),added:+b.added||Date.now()};
+    if(!books.some(y=>y.id===x.id||(norm(y.title)===norm(x.title)&&y.status===x.status))){await put(x);n++}}
+  toast(n?`Restored ${n} book${n===1?'':'s'}`:'Those books are already on your shelf')}catch(err){toast('That file isn\'t a Reading Room backup.')}e.target.value=''};
+['#libQ','#libF','#libS'].forEach(s=>$(s).addEventListener('input',renderLib));
+
+/* dialog */
+let cur=null,rating=0,again='';
+$('#fG').innerHTML=Object.entries(GENRES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+$('#fR').innerHTML=Array.from({length:10},(_,i)=>`<button type="button" data-r="${i+1}">${i+1}</button>`).join('');
+const paintForm=()=>{$$('#fR button').forEach(b=>b.classList.toggle('on',+b.dataset.r<=rating));$('#fRv').textContent=rating||'–';$$('#fY button').forEach(b=>b.classList.toggle('on',b.dataset.v===again));$('#readBits').style.display=$('#fS').value==='tbr'?'none':'grid'};
+$('#fR').onclick=e=>{const b=e.target.closest('button');if(b){rating=+b.dataset.r;paintForm()}};
+$('#fY').onclick=e=>{const b=e.target.closest('button');if(b){again=b.dataset.v;paintForm()}};
+$('#fS').onchange=paintForm;
+function openDlg(b={}){cur=b.id?b:null;$('#dlgT').textContent=b.id?'Edit book':'Add a book';$('#fT').value=b.title||'';$('#fA').value=b.author||'';$('#fG').value=b.genre||'romantasy';$('#fS').value=b.status||'read';$('#fN').value=b.notes||'';rating=+b.rating||0;again=b.again||'';$('#delBtn').hidden=!b.id;paintForm();try{$('#dlg').showModal()}catch(e){$('#dlg').setAttribute('open','')}}
+$('#addBtn').onclick=()=>openDlg();
+$('#cancelBtn').onclick=()=>$('#dlg').close();
+$('#dlg').addEventListener('click',e=>{if(e.target===$('#dlg'))$('#dlg').close()});
+$('#delBtn').onclick=()=>{if(!cur)return;const t=cur.title;del(cur.id);$('#dlg').close();toast(`Removed “${t}”`)};
+$('#fT').addEventListener('input',()=>{const c=B.find(b=>norm(b.t)===norm($('#fT').value));if(c&&!$('#fA').value){$('#fA').value=c.a;$('#fG').value=c.g[0]}});
+$('#bookForm').addEventListener('submit',e=>{e.preventDefault();const title=$('#fT').value.trim(),author=$('#fA').value.trim();if(!title||!author)return;
+  const st=$('#fS').value;const b={id:cur?cur.id:'b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title,author,genre:$('#fG').value,status:st,rating:st==='tbr'?0:rating,again:st==='tbr'?'':again,notes:$('#fN').value.trim(),added:cur?cur.added:Date.now()};
+  put(b);$('#dlg').close();toast(cur?'Saved':`Added “${title}” to your ${st==='tbr'?'want-to-read list':'library'}`)});
+
+/* for you */
+let recMode='shelf';
+const HINTS={shelf:['','Uses the books you rated highest and would read again.'],like:['A book you loved, e.g. The Song of Achilles','Find books with the same feel.'],author:['An author you love, e.g. Emily Henry','Finds more by them plus authors with a similar writing style.']};
+function setMode(m){recMode=m;$$('.mode').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m));$('#recIn').style.display=m==='shelf'?'none':'';$('#recIn').placeholder=HINTS[m][0];$('#recIn').setAttribute('aria-label',HINTS[m][0]||'Input');$('#recHint').textContent=HINTS[m][1];$('#recGo').textContent=m==='shelf'?'Recommend from my library':'Recommend'}
+$$('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.m));setMode('shelf');
+
+function localRecs(seedTags,exclude){
+  return B.filter(b=>!exclude.has(norm(b.t))&&!inLib(b.t)).map(b=>{let s=0;for(const k of ['g','m','v'])for(const x of b[k])s+=(seedTags[k+x]||0)*(k==='g'?2:1);return {b,s:s+(b.hot?.5:0)}}).filter(x=>x.s>.5).sort((a,b)=>b.s-a.s).slice(0,60);
+}
+function tagsFrom(list){const t={};for(const b of list)for(const k of ['g','m','v'])for(const x of b[k])t[k+x]=(t[k+x]||0)+(b.w||1);return t}
+$('#recForm').addEventListener('submit',async e=>{
+  e.preventDefault();const q=$('#recIn').value.trim(),st=$('#recStatus'),out=$('#recOut'),go=$('#recGo');
+  if(recMode!=='shelf'&&!q){st.textContent='Type a title or author first.';return}
+  const loved=books.filter(b=>b.status!=='tbr'&&((+b.rating||0)>=7||b.again==='yes'));
+  if(recMode==='shelf'&&!loved.length){st.textContent='Add a few books you rated 7 or higher (or would read again) in My Library, then try this again.';out.innerHTML='';return}
+  go.disabled=true;st.innerHTML='<span class="spin"></span> Looking through the stacks…';out.innerHTML='';
+  const ex=books.map(b=>b.title).join('; ');
+  const prompt=recMode==='shelf'?`Here is Rita's reading history with her ratings out of 10 and whether she'd read each again:\n${libSummary()}\nWeight books she rated highly and would reread; steer away from what she rated low. ${tasteText()}`
+    :recMode==='like'?`Rita loved "${q}". ${tasteText()} Recommend books with a similar feel: tone, themes, pacing and the kind of romance or tension. Her history for context:\n${libSummary()}`
+    :`Rita loves the author ${q}. Include 2-3 more books by ${q} she may not have read, and books by authors with a similar writing style (voice, pacing, tone). Her history for context:\n${libSummary()}`;
+  try{
+    const r=await ask(`You are an expert bookseller who knows BookTok well. It is ${today}. ${prompt}
+Do not recommend these titles, already on her shelf: ${ex||'(none)'}.
+Return ONLY JSON: {"books":[{"title","author","genre" (one of ${Object.keys(GENRES).join(', ')}),"blurb" (max 15 words, spoiler-free),"why" (max 12 words linking it to what she loves)}] (50 books, best fit first, no duplicates)${recMode==='author'?`,"authors":[{"name","style" (one sentence on how their writing compares to ${q}),"start" (best book to start with)}] (10 authors)`:''}}. Only real, published books.`);
+    let html='';
+    if(r.authors&&r.authors.length)html+=`<div class="head"><h2>Authors with a similar style</h2></div><div class="authors">${r.authors.map(a=>`<div class="au"><b>${esc(a.name)}</b><p>${esc(a.style)}</p><div class="note">Start with <i>${esc(a.start)}</i></div><div class="row" style="margin-top:10px"><button class="btn sm" data-find="${esc(a.start)}" data-au="${esc(a.name)}">Find this book</button></div></div>`).join('')}</div>`;
+    html+=`<div class="head"><h2>${recMode==='shelf'?'Picked from your shelf':recMode==='like'?'If you loved '+esc(q):'If you love '+esc(q)}</h2></div><div class="books" id="recBooks"></div>`;
+    out.innerHTML=html;st.textContent='';const rb=(r.books||[]).filter(x=>x&&x.title&&!inLib(x.title)).map(x=>bookCard({t:x.title,a:x.author,g:[x.genre],v:[],blurb:x.blurb},{why:x.why}));paged('#recBooks',rb);
+  }catch(err){
+    st.textContent=aiErr(err);let html='',lr=[];
+    if(recMode==='author'){const sim=SIMILAR[Object.keys(SIMILAR).find(k=>norm(k)===norm(q))];
+      const by=B.filter(b=>norm(b.a)===norm(q));
+      if(sim)html+=`<div class="head"><h2>Authors with a similar style</h2></div><div class="authors">${sim.map(n=>`<div class="au"><b>${esc(n)}</b><div class="row" style="margin-top:10px"><a class="btn sm" href="https://www.goodreads.com/search?q=${enc(n)}" target="_blank" rel="noopener">See their books</a></div></div>`).join('')}</div>`;
+      const seeds=by.length?by:B.filter(b=>sim&&sim.some(n=>norm(n)===norm(b.a)));
+      lr=localRecs(tagsFrom(seeds),new Set());
+      html+=lr.length?`<div class="head"><h2>Books you might like</h2></div><div class="books" id="recBooks"></div>`:'';
+      if(!html)html='<div class="empty">That author isn\'t in the built-in list. Claude can answer this when it\'s available.</div>';
+    }else{
+      const seeds=recMode==='shelf'?loved.map(l=>{const c=B.find(b=>norm(b.t)===norm(l.title));return c?{...c,w:(+l.rating||7)/7}:null}).filter(Boolean):B.filter(b=>norm(b.t)===norm(q));
+      lr=localRecs(tagsFrom(seeds),new Set(seeds.map(s=>norm(s.t))));
+      html=lr.length?`<div class="books" id="recBooks"></div>`:'<div class="empty">The built-in list doesn\'t know those books well enough yet. Claude can answer this when it\'s available.</div>';
+    }
+    out.innerHTML=html;if($('#recBooks'))paged('#recBooks',lr.map(x=>bookCard(x.b)));
+  }
+  go.disabled=false;
+});
+
+/* find */
+function findLinks(t,a){
+  const q=enc((t+' '+(a||'')).trim()),qt=enc(t);
+  const G=[
+   ['Borrow free from a library','Use your Canadian library card. Most libraries lend e-books and audiobooks this way.',[
+     ['Libby / OverDrive','E-books & audiobooks from your library',`https://www.overdrive.com/search?q=${q}`],
+     ['hoopla','Instant borrows, no waitlist, if your library offers it',`https://www.hoopladigital.com/search?q=${q}`],
+     ['WorldCat','Find print copies at libraries near you',`https://search.worldcat.org/search?q=${q}`],
+     ['Open Library','Free digital lending from the Internet Archive',`https://openlibrary.org/search?q=${q}&mode=everything`]]],
+   ['Free downloads (legal)','Free and legal for older books in the public domain. Newer books are free to borrow, not to download.',[
+     ['Project Gutenberg','70,000+ free classic e-books',`https://www.gutenberg.org/ebooks/search/?query=${q}`],
+     ['Standard Ebooks','Beautifully formatted free classics',`https://standardebooks.org/ebooks?query=${qt}`],
+     ['Internet Archive','Free texts and borrowable books',`https://archive.org/search?query=${q}`],
+     ['LibriVox','Free public-domain audiobooks',`https://librivox.org/search?q=${qt}&search_form=advanced`]]],
+   ['Buy in Canada','Print, e-book and audio, shipped or picked up in Canada.',[
+     ['Indigo / Chapters','Ship or pick up in store',`https://www.indigo.ca/en-ca/search?q=${q}`],
+     ['Kobo','E-books & audiobooks, Canadian store',`https://www.kobo.com/ca/en/search?query=${q}`],
+     ['Goodreads','Reviews, editions & ratings',`https://www.goodreads.com/search?q=${q}`]]]];
+  return `<div class="links">${G.map(([h,p,ls])=>`<div class="lg"><h3>${h}</h3><p>${p}</p>${ls.map(([n,d,u])=>`<a class="lk" href="${esc(u)}" target="_blank" rel="noopener"><span>${n}<small>${d}</small></span><em>Search ↗</em></a>`).join('')}</div>`).join('')}</div>`;
+}
+function doFind(t,a){
+  $('#findT').value=t;$('#findA').value=a||'';
+  const c=B.find(b=>norm(b.t)===norm(t));
+  $('#findOut').innerHTML=`<div class="status" role="status">Showing where to find <b>${esc(t)}</b>${a?' by '+esc(a):''}. Each link opens a search on that site, where you can see if it's available.${c&&c.hot===2?' This is a brand-new release, so expect library holds. Place yours early.':''}</div>${findLinks(t,a)}`;
+}
+$('#findForm').addEventListener('submit',e=>{e.preventDefault();const t=$('#findT').value.trim();if(!t)return;let a=$('#findA').value.trim();if(!a){const c=B.find(b=>norm(b.t)===norm(t))||books.find(b=>norm(b.title)===norm(t));if(c)a=c.a||c.author}doFind(t,a)});
+$('#findT').addEventListener('input',()=>{const c=B.find(b=>norm(b.t)===norm($('#findT').value));if(c&&!$('#findA').value)$('#findA').value=c.a});
+
+/* trending */
+$('#trF').innerHTML+=Object.entries(GENRES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+function renderTr(){const g=$('#trF').value;const list=B.filter(b=>b.hot&&(!g||b.g.includes(g))).map(b=>{const t=tasteScore(b),o=inLib(b.t);if(o&&o.status!=='tbr')t.s-=50;return {b,t}}).sort((a,b)=>T.n>=2?b.t.s-a.t.s:b.b.hot-a.b.hot);
+  if(list.length)paged('#trList',list.map(({b,t})=>bookCard(b,{buzz:1,heads:1,rev:1,why:t.why})));else $('#trList').innerHTML='<div class="empty">Nothing trending in that genre right now.</div>'}
+$('#trF').onchange=renderTr;
+
+/* shared clicks */
+document.addEventListener('click',async e=>{
+  const mb=e.target.closest('[data-more]');if(mb){const id=mb.dataset.more;paged(id,$(id)._cards,true);return}
+  const tc=e.target.closest('[data-au-like],[data-genre]');
+  if(tc){if(tc.dataset.genre){const i=$(`#c-genre input[value=${tc.dataset.genre}]`);i.checked=true;i.dispatchEvent(new Event('change',{bubbles:true}));$('#resT').scrollIntoView({behavior:'smooth',block:'start'})}
+    else{location.hash='for-you';setMode('author');$('#recIn').value=tc.dataset.auLike;$('#recForm').requestSubmit()}return}
+  const t=e.target.closest('[data-add],[data-tbr],[data-find],[data-like],[data-edit],[data-rev]');if(!t)return;
+  if(t.dataset.add)openDlg({title:t.dataset.add,author:t.dataset.au,genre:GENRES[t.dataset.g]?t.dataset.g:'romantasy'});
+  else if(t.dataset.tbr){put({id:'b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t.dataset.tbr,author:t.dataset.au,genre:GENRES[t.dataset.g]?t.dataset.g:'',status:'tbr',rating:0,again:'',notes:'',added:Date.now()});toast(`Added “${t.dataset.tbr}” to want-to-read`)}
+  else if(t.dataset.find){doFind(t.dataset.find,t.dataset.au);location.hash='find'}
+  else if(t.dataset.like){location.hash='for-you';setMode('like');$('#recIn').value=t.dataset.like;$('#recForm').requestSubmit()}
+  else if(t.dataset.edit!==undefined){const b=books.find(x=>x.id===t.dataset.edit);if(b)openDlg(b)}
+  else if(t.dataset.rev){const box=[...$$('[data-revout]')].find(x=>x.dataset.revout===t.dataset.rev);if(!box)return;t.disabled=true;box.innerHTML='<span class="spin"></span> Writing a review…';
+    try{const r=await ask(`Write a balanced, spoiler-free mini review of "${t.dataset.rev}" by ${t.dataset.au} for a keen reader deciding whether to read it. Return ONLY JSON {"review":"3-4 sentences in your own words: what it does well, what some readers dislike, who will love it","score":"your rating out of 10 as a number"}`);
+      box.innerHTML=`<p class="heads" style="margin-top:4px"><b>Claude's take${r.score?` (${esc(r.score)}/10)`:''}:</b> ${esc(r.review)}</p>`}
+    catch(err){box.textContent=err&&err.code==='none'?'Claude isn\'t available in this view. Try “Read reviews” instead.':'Couldn\'t get a review just now.'}
+    t.disabled=false}
+});
+
+/* routing */
+const VIEWS={home:['What are we reading next, Rita?','Tell me your mood, the genre you\'re craving and the vibe you want, and I\'ll pull the books BookTok can\'t stop talking about that fit you best.'],library:['Your shelf','Every story you\'ve lived in, rated and remembered.'],'for-you':['Chosen for you','Recommendations from your own taste, a book you loved, or an author you can\'t get enough of.'],find:['Where to get it','Libraries first, free when it\'s legal, and Canadian stores when you want to own it.'],trending:['BookTok right now','What everyone\'s reading this season, and whether it\'s worth the hype.']};
+function homeLine(){
+  if(T.n<2)return T.n?'One book on your shelf so far. Rate a few more and this page will start choosing around your taste.':'Add the books you\'ve read in My Library and watch your shelf fill up. Everything here will start choosing around your taste.';
+  const f=T.fav[0],g=T.topG[0];
+  return `${T.n} books on your shelf${g?`, and ${GENRES[g]} is your highest-rated genre`:''}${f?`. ${f.name} is your favourite author`:''}. Tell me your mood and I'll find your next one.`;
+}
+function route(){const v=(location.hash||'#home').slice(1);const k=VIEWS[v]?v:'home';$$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+k));$$('.tab').forEach(a=>a.dataset.v===k?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));$('#heroT').textContent=VIEWS[k][0];$('#heroP').textContent=k==='home'?homeLine():VIEWS[k][1];if(route.done)scrollTo(0,0);route.done=1}
+addEventListener('hashchange',route);
+
+let tt;function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2600)}
+function renderAll(){buildTaste();orderChips();renderHome();$('#heroP').textContent=(location.hash||'#home')==='#home'?homeLine():$('#heroP').textContent;renderLib();renderTr();drawShelf();$('#known').innerHTML=[...new Set([...B.map(b=>b.t),...books.map(b=>b.title)])].map(t=>`<option value="${esc(t)}">`).join('')}
+route();renderAll();initDb();
+/* installable app (own website only) */
+if(SOLO){
+  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  let dismissed=false;try{dismissed=localStorage.getItem('rrr-install-no')==='1'}catch(e){}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  let deferred=null;
+  const show=how=>{if(standalone||dismissed)return;$('#installHow').textContent=how;$('#install').hidden=false};
+  if(ios)show('In Safari, tap the Share button, then “Add to Home Screen”. It opens full-screen, just like an app.');
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#installBtn').hidden=false;show('One tap and it lives on your home screen like any other app.')});
+  $('#installBtn').onclick=async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;$('#install').hidden=true};
+  $('#installNo').onclick=()=>{$('#install').hidden=true;try{localStorage.setItem('rrr-install-no','1')}catch(e){}};
+  addEventListener('appinstalled',()=>{$('#install').hidden=true;toast('Installed. Find the Reading Room on your home screen.')});
+}
+}
+</script>
+</body>
+</html>
